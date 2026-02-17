@@ -194,7 +194,7 @@
             $(this).fadeOut();
             
             // 1. 文案提示：对准麦克风吹气
-            $('#wish_guide').text('对准麦克风吹气...').fadeIn('slow');
+            $('#wish_guide').text('对准麦克风吹气,如果带耳机了就对着耳机吹，嘻嘻').fadeIn('slow');
             
             // 2. 兼容 iOS 的 AudioContext 启动
             window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -232,7 +232,7 @@
                             const average = values / array.length;
 
                             // 4. 判定吹气成功 (阈值建议在 40-60 之间)
-                            if (average > 50) { 
+                            if (average > 30) { 
                                 scriptProcessor.onaudioprocess = null; 
                                 stopMic();
                                 handleBlowSuccess();
@@ -311,7 +311,7 @@
         $('#story').click(function(){
             $(this).fadeOut();
             $('.message').fadeIn('slow');
-            const messages = ["今天是一个特殊的日子","2月18日","潘倩雯生日啦~","不能给你当面过生日呢","就只能以这样的形式啦，","第一次有人这样给你过生日吧~哈哈哈~","希望我们漂亮的潘倩雯每天都能开心幸福","平安喜乐，喜乐，喜乐","主要是喜乐昂，重要的事情说三遍","马年顺顺利利哦~","祝你生日快乐鸭！！！","生日快乐~生日快乐~生日快乐~","这两天烟花看了很多吧","我也准备了一个烟花,哈哈哈","电子烟花只为你绽放~"];
+            const messages = ["今天是一个特殊的日子","2月18日~","潘倩雯生日啦~","不能给你当面过生日呢","就只能以这样的形式啦","第一次有人这样给你过生日吧~哈哈哈~","希望我们漂亮的潘倩雯每天都能开心幸福","平安喜乐~喜乐~喜乐~","主要是喜乐昂，阿呆，嘿嘿，重要的事情说三遍","马年要顺顺利利哦~","祝你生日快乐鸭！！！","生日快乐~生日快乐~生日快乐~","这两天烟花看了很多吧","我也准备了一个烟花~哈哈哈~","电子烟花只为你一个人绽放~"];
             function showMsg(i) {
                 $('.message p').hide().text(messages[i]).fadeIn(1000).delay(2500).fadeOut(1000, function(){
                     if(++i < messages.length) showMsg(i);
