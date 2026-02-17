@@ -70,7 +70,7 @@
     <audio id="main_audio" loop preload="auto"><source src="hbd.mp3"></audio>
     <audio id="firework_audio" loop preload="auto"><source src="song.mp3"></audio>
 
-    <div class="balloons" id="b1"><img src="images/b1.png"><h2 style="color: #F2B300;">🎈</h2></div>
+    <div class="balloons" id="b1"><img src="images/b1.png"><h2 style="color: #F2B300;">❤</h2></div>
     <div class="balloons" id="b2"><img src="images/b2.png"><h2 style="color: #0719D4;">生</h2></div>
     <div class="balloons" id="b3"><img src="images/b3.png"><h2 style="color: #D14D39;">日</h2></div>
     <div class="balloons" id="b4"><img src="images/b4.png"><h2 style="color: #8FAD00;">快</h2></div>
@@ -209,6 +209,13 @@
 				'opacity': '1',      // 强制不透明
 				'visibility': 'visible' // 强制可见
 			}).fadeIn(1000);
+            
+            // --- 核心修复：提前预加载并“偷跑”第二首 ---
+            const fAudio = document.getElementById('firework_audio');
+            fAudio.volume = 0; // 静音
+            fAudio.play().then(() => {
+                setTimeout(() => { fAudio.pause(); fAudio.volume = 1; }, 100); // 播 0.1 秒立刻停，完成授权
+            }).catch(e => console.log("预加载失败", e));
 
             const finalTop = 80; 
             $('#b1').animate({top: finalTop, left: vw-240}, 2500);
