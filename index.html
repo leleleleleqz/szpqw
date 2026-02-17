@@ -130,6 +130,10 @@
     $(window).load(function(){ $('.loading').fadeOut('fast'); $('.container').fadeIn('fast'); });
     
     $(document).ready(function(){
+
+        let micStream;
+        let audioContext;
+
         $('#turn_on').click(function(){
 
             // --- 核心修复：预解锁音频 ---
@@ -186,11 +190,85 @@
             $(this).fadeOut().promise().done(() => $('#make_wish').fadeIn());
         });
 
-        $('#make_wish').click(function(){
+       $('#make_wish').click(function(){
             $(this).fadeOut();
-            $('#wish_guide').fadeIn('slow');
-            setTimeout(() => { $('#blow_candle').fadeIn('slow'); }, 2500);
+            
+            // 1. 文案提示：对准麦克风吹气
+            $('#wish_guide').text('对准麦克风吹气...').fadeIn('slow');
+            
+            // 2. 兼容 iOS 的 AudioContext 启动
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+
+            // 3. 请求麦克风权限
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function(stream) {
+                        micStream = stream;
+                        
+                        // iOS 必须在 resume 之后才能真正工作
+                        if (audioContext.state === 'suspended') {
+                            audioContext.resume();
+                        }
+
+                        const analyser = audioContext.createAnalyser();
+                        const microphone = audioContext.createMediaStreamSource(stream);
+                        const scriptProcessor = audioContext.createScriptProcessor(2048, 1, 1);
+
+                        analyser.smoothingTimeConstant = 0.8;
+                        analyser.fftSize = 1024;
+
+                        microphone.connect(analyser);
+                        analyser.connect(scriptProcessor);
+                        scriptProcessor.connect(audioContext.destination);
+
+                        scriptProcessor.onaudioprocess = function() {
+                            const array = new Uint8Array(analyser.frequencyBinCount);
+                            analyser.getByteFrequencyData(array);
+                            let values = 0;
+                            for (let i = 0; i < array.length; i++) {
+                                values += array[i];
+                            }
+                            const average = values / array.length;
+
+                            // 4. 判定吹气成功 (阈值建议在 40-60 之间)
+                            if (average > 50) { 
+                                scriptProcessor.onaudioprocess = null; 
+                                stopMic();
+                                handleBlowSuccess();
+                            }
+                        };
+                    })
+                    .catch(function(err) {
+                        console.warn("麦克风授权失败或不支持:", err);
+                        // 降级处理：授权失败时，文案提示改为点击吹灭
+                        $('#wish_guide').text('点击屏幕吹灭蜡烛');
+                        $(document).one('click touchstart', handleBlowSuccess);
+                    });
+            } else {
+                // 不支持麦克风的浏览器
+                $('#wish_guide').text('点击屏幕吹灭蜡烛');
+                $(document).one('click touchstart', handleBlowSuccess);
+            }
         });
+
+        function stopMic() {
+            if (micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+            }
+            if (audioContext) {
+                audioContext.close();
+            }
+        }
+
+        function handleBlowSuccess() {
+            $('#wish_guide').fadeOut('fast');
+            $('.fuego').fadeOut('slow'); // 熄灭火焰
+            
+            // 确保备选按钮也被隐藏并进入下一步
+            $('#blow_candle').hide();
+            $('#wish_message').fadeIn();
+        }
 
         $('#blow_candle').click(function() {
             $('#wish_guide').fadeOut('fast');
