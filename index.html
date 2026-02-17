@@ -131,6 +131,15 @@
     
     $(document).ready(function(){
         $('#turn_on').click(function(){
+
+            // --- 核心修复：预解锁音频 ---
+            const mainAudio = document.getElementById('main_audio');
+            const fireworkAudio = document.getElementById('firework_audio');
+            
+            // 播放并立即暂停，骗过浏览器的安全机制
+            mainAudio.play().then(() => mainAudio.pause());
+            fireworkAudio.play().then(() => fireworkAudio.pause());
+            
             $('.bulb').addClass('bulb-glow-yellow'); $('body').addClass('peach');
             $(this).fadeOut().delay(1000).promise().done(() => $('#play').fadeIn());
         });
